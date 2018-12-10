@@ -71,8 +71,8 @@ function deg2rad(deg)
 					duration = parseFloat(duration / (60 * 1000));
 					duration = Math.round(duration * 100) / 100;
 					db.insertQuery("summary",
-					["duration","screener_score","who_score","feeling","senti_score","email","convo"],
-					[duration,user.screener_score,user.who_score,user.feeling,user.senti_score,user.email,convo ]);
+					["duration","screener_score","who_score","feeling","email","convo"],
+					[duration,user.screener_score,user.who_score,user.feeling,user.email,convo ]);
 					
 					
 					db.saveHistory("user","history_user",["browserid"],[sessionId],"chat_start",function(err)
@@ -313,10 +313,10 @@ io.on('connection', (socket) =>
 		
 
 		
-		mailer.sendMail(config.emergency_reciever,"Emergency! A Life is under danger.",
-			"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
-			" The details of the person is sharing with you below<br><b> Phone No: "+data.query[0]+"<br>Email: "+data.query[1]+"<br></b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
-			"<br><b>Please take appropriate actions immediately.</b></div>",
+		mailer.sendMail(config.emergency_reciever,"Emergency! Email's Followup",
+			"Additional data of user ", "<div><b>As per the further conversation with the following user details,  </b></div>"+
+			"<div><b>Phone </>: "+phone+"<br> <b>Email</b> : "+email+"<br><b>Geo Location :: Latitude </b>:"+static_lat+" ,<b> Longitude </b>: "+ static_long+"<br> "+
+			"</div><div><hr><b>Chatbot recieved additional information of user's history as follows :</b><br><br><b>Doctor details that user consulted/consulting </b>: "+data.query[2]+"<br> <b>User is consulting/consulted doctor for time period</b> : "+data.query[3]+"<br><b>User consumes/consumed medicine details </b>: "+data.query[4]+"</div>",
 			function(error, response)
 			{
 				if(error)
@@ -325,6 +325,7 @@ io.on('connection', (socket) =>
 				}
 				else
 				{
+					// console.log("success");
 				}
 			});
 	});
@@ -332,26 +333,29 @@ io.on('connection', (socket) =>
 	socket.on('EmergencySendMail', function(data) 
 	{
 		var date = new Date();
-
 		var attachmentID1 = "";
+		var attachmentID2 = "";
+		phone = data.query[0];
+		email = data.query[1];
+		//console.log("inside EmergencySendMail " , phone , email , sessionId);
+
+
 		if (fs.existsSync('./logs/users/'+sessionId+'.log')) {
 		    attachmentID1 = './logs/users/'+sessionId+'.log';
 		}
 
 
-		var attachmentID2 = "";
-		if(mehaEmail.localeCompare("no-email")==0){
+		
+		if(!email){
 			// console.log("email failed");
 		}
 		else {
-				if (fs.existsSync('./logs/users/'+mehaEmail+'.log')) {
+				if (fs.existsSync('./logs/users/'+email+'.log')) {
 
-			    	attachmentID2 = './logs/users/'+mehaEmail+'.log';
+			    	attachmentID2 = './logs/users/'+email+'.log';
 				}
 		}
-		phone = data.query[0];
-		email = data.query[1];
-
+		
 		if(phone == 0){
 			phone ="Not Available";
 		}
@@ -362,6 +366,8 @@ io.on('connection', (socket) =>
 		}
 		var mailconvo = convo.replace(/(?:\r\n|\r|\n)/g, '<br>');
 		if(attachmentID2 != "" && attachmentID1 != ""){
+				//console.log("inside EmergencySendMail  if ");
+				
 				mailer.sendMail2Attachment(config.emergency_reciever,"Emergency! A Life is under danger.",
 				"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
 				" The details of the person is sharing with you below<br><b> Phone No: "+phone+"<br>Email: "+email+"<br></b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
@@ -383,6 +389,8 @@ io.on('connection', (socket) =>
 				
 		}
 		else if(attachmentID2 != ""){
+				//console.log("inside EmergencySendMail else if ");
+				
 				mailer.sendMail1Attachment(config.emergency_reciever,"Emergency! A Life is under danger.",
 				"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
 				" The details of the person is sharing with you below<br><b> Phone No: "+phone+"<br>Email: "+email+"<br></b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
@@ -404,6 +412,8 @@ io.on('connection', (socket) =>
 		}
 
 		else if(attachmentID1 != ""){
+				//console.log("inside EmergencySendMail else if 2");
+				
 				mailer.sendMail1Attachment(config.emergency_reciever,"Emergency! A Life is under danger.",
 				"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
 				" The details of the person is sharing with you below<br><b> Phone No: "+phone+"<br>Email: "+email+"<br></b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
@@ -424,16 +434,60 @@ io.on('connection', (socket) =>
 
 
 		}
+		else if(attachmentID2 == "" && attachmentID1 == ""){
+				//console.log("inside EmergencySendMail  else if 3");
+				
+				mailer.sendMail(config.emergency_reciever,"Emergency! A Life is under danger.",
+				"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
+				" The details of the person is sharing with you below<br><b> Phone No: "+phone+"<br>Email: "+email+"<br></b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
+				"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+				"<div><h4>The conversation was as follows: </h3></div>"+
+				"<div><table border='1'><i>"+mailconvo+"</i></table><div>",
+				function(error, response)
+				{
+					if(error)
+					{
+						log.error(error);
+					}
+					else
+					{
+						apiGetRes(socket,"help",data.options);
+					}
+				});
+
+				
+		}
 
 	});
 
 	socket.on('EmergencySendMail2', function(data) 
 	{
 		var date = new Date();
-		if(data.query[0] == "email"){
-			static_email = data.query[1];
+
+		if(mehaEmail.localeCompare("no-email")==0){
+			// console.log("email failed");
 		}
-		else if(data.query[0] == "phone"){
+		else {
+				if (fs.existsSync('./logs/users/'+mehaEmail+'.log')) {
+			    	attachmentID2 = './logs/users/'+mehaEmail+'.log';
+				}
+		}
+
+		if(data.query[0] == "email"){
+
+			static_email = data.query[1];
+			if(!static_email){
+			// console.log("email failed");
+			}
+			else {
+					if (fs.existsSync('./logs/users/'+static_email+'.log')) {
+				    	attachmentID2 = './logs/users/'+static_email+'.log';
+					}
+			}
+		}
+
+
+		if(data.query[0] == "phone"){
 			phone = data.query[1];
 		}
 
@@ -444,14 +498,7 @@ io.on('connection', (socket) =>
 
 
 		var attachmentID2 = "";
-		if(mehaEmail.localeCompare("no-email")==0){
-			// console.log("email failed");
-		}
-		else {
-				if (fs.existsSync('./logs/users/'+mehaEmail+'.log')) {
-			    	attachmentID2 = './logs/users/'+mehaEmail+'.log';
-				}
-		}
+		
 		var mailconvo = convo.replace(/(?:\r\n|\r|\n)/g, '<br>');
 
 		if(attachmentID2 != "" && attachmentID1 != ""){
@@ -494,8 +541,6 @@ io.on('connection', (socket) =>
 
 		}
 		else if (attachmentID1 != ""){
-
-
 					mailer.sendMail1Attachment(config.emergency_reciever,"Emergency! A Life is under danger.",
 					"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
 					" The details of the person is sharing with you below<br><b> "+data.query[0]+": "+data.query[1]+".<br><b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
@@ -515,6 +560,28 @@ io.on('connection', (socket) =>
 						}
 					},attachmentID1);
 		}
+		else if(attachmentID2 == "" && attachmentID1 == ""){
+				mailer.sendMail(config.emergency_reciever,"Emergency! A Life is under danger.",
+					"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
+					" The details of the person is sharing with you below<br><b> "+data.query[0]+": "+data.query[1]+".<br><b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
+					"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+					"<div><h4>The conversation was as follows: </h3></div>"+
+					"<div><table border='1'><i>"+mailconvo+"</i></table><div>",
+				function(error, response)
+				{
+					if(error)
+					{
+						log.error(error);
+					}
+					else
+					{
+						apiGetRes(socket,"help",data.options);
+					}
+				});
+
+				
+		}
+
 		
 	});
 
@@ -564,8 +631,15 @@ io.on('connection', (socket) =>
 		}
 
 		var attachmentID2 = "";
-		if(mehaEmail.localeCompare("no-email")==0){
-			// console.log("email failed");
+		if(mehaEmail.localeCompare("no-email")==0 ){
+			if(!static_email){
+			
+				}
+				else {
+						if (fs.existsSync('./logs/users/'+static_email+'.log')) {
+					    	attachmentID2 = './logs/users/'+static_email+'.log';
+						}
+				}
 		}
 		else {
 				if (fs.existsSync('./logs/users/'+mehaEmail+'.log')) {
@@ -647,6 +721,29 @@ io.on('connection', (socket) =>
 
 					}
 				},attachmentID1);
+		}
+		else if(attachmentID2 == "" && attachmentID1 == ""){
+				mailer.sendMail(config.emergency_reciever,"Emergency! A Life is under danger.",
+				"A person is showing some suicidal / murder tendencies. The details of the person is sharing with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies.The details of the person is sharing with you below.<br><b> Geo Location Details - Latitude : "+latitude+" Longitude : "+longitude+
+				".<br>"+
+				"Phone : "+phone +"<br> Email : "+email +"</b> <br>We have suggested the individual to consult a doctor in the nearby hospital <b>"+hos+"</b>, pincode "+pin+".<br><b>"+
+				"This message is sent at "+date +
+				".<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+				"<div><h4>The conversation was as follows: </h3></div>"+
+				"<div><table border='1'><i>"+mailconvo+"</i></table><div>",
+				function(error, response)
+				{
+					if(error)
+					{
+						log.error(error);
+					}
+					else
+					{
+						//apiGetRes(socket,"help",data.options);
+					}
+				});
+
+				
 		}
 		
 	});
@@ -859,7 +956,7 @@ io.on('connection', (socket) =>
 	socket.on('LocationDenied', function(data) 
 	{	
 		log.debug(data);
-		apiGetRes(socket,"nolocation",data.options);
+		apiGetRes(socket,"location-denied",data.options);
 	});
 
 	socket.on('storeWellnessRatingAndFeedback', function(data) 

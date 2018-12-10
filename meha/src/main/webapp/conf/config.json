@@ -12,18 +12,18 @@
 	"how_are_you_interval" : 12,
 	"reporting_time": 
 		{
-			"hour": 19,
-			"minute": 12
+			"hour": 22,
+			"minute": 50
 		},
 	"reporting_time2": 
 		{
-			"hour": 19,
-			"minute": 15
+			"hour": 22,
+			"minute": 51
 		},
 	"chat_admin_email":"meha.nimhans@gmail.com",
 	"chat_admin_pass":"nimhans.meha1",
-	"doctor_email":"meha.nimhans@gmail.com",
-	"emergency_reciever":"meha.nimhans@gmail.com",
+	"doctor_email":"minnuann5@gmail.com",
+	"emergency_reciever":"minnuann5@gmail.com",
 	"webhook_dictionary":"http://services.aonaware.com/DictService/DictService.asmx/DefineInDict?dictId=wn&word=",
 	"webhook_match":"http://services.aonaware.com/DictService/DictService.asmx/MatchInDict?dictId=wn&strategy=lev&word="
 }

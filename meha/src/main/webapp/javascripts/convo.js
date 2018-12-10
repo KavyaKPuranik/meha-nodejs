@@ -361,7 +361,8 @@ function emailDisplay(email)
 // }
 
 function validatePhone(inputtxt) {
-  var phoneno = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+
+  var phoneno = /^(\+91[\-\s]?)?[0]?(91)?[6789]\d{9}$/;
   if (String(inputtxt).match(phoneno)) {
         return true;
   }
@@ -384,8 +385,9 @@ function emergencyPhoneVerify(data)
 	    requestToServer("EmergencyInvalidphone","", contexts);
 	} 
 	else {
+		//console.log("inside emergencyPhoneVerify else part");
 	    if(!email){
-
+	    	//console.log("inside emergencyPhoneVerify else  if part");
 	    	var contexts = [{
 				name: "get-email",
 				parameters: {},
@@ -394,6 +396,7 @@ function emergencyPhoneVerify(data)
 			requestToServer("EmergencyGetEmail","", contexts);
 	    }
 		else{
+			//console.log("inside emergencyPhoneVerify else else part");
 			var contexts = [{
 				name: "calm-down",
 				parameters: {},
@@ -543,7 +546,9 @@ function otpDisplay(otp)
 
 //these are functions that are called from the parent page into this one...
 function listener(event)
-{
+{	
+	//console.log("-------------in Listener convo.js ---------");
+
 	if(event.origin !== ORIGIN && 
 			event.origin !== "http://localhost:3000" && 
 			event.origin !== "http://localhost"&& 
@@ -553,14 +558,22 @@ function listener(event)
 	}
 	else
 	{
+
 		console.log("In client",event);
 		var response   = JSON.parse(event.data);
-		if(response.success)
-			showPosition(response.arr);
+		if(response.success){
+			//console.log("-----in Listener convo.js  response.success----------");
+			console.log(response.types);
+			if(response.types == "normal")
+				showPosition(response.arr);
+			else if(response.types == "emergency")
+				showPositionEmergency(response.arr);
+		}
 		else 
 			showError();
 	}
 }
+
 
 //attach a listener for when postMessage calls come in...
 if (window.addEventListener)
@@ -587,7 +600,8 @@ function showPosition(arr) {
 }
 function hospitalFinderEmergency()
 {
-	 getLocationEmergency();
+	window.parent.postMessage('requesting location emergency', (ORIGIN == 'file:' ? '*' : ORIGIN));
+
 }
 
 function showPositionEmergency(position) {
@@ -596,18 +610,12 @@ function showPositionEmergency(position) {
 					parameters: {},
 					lifespan:1
 			}]; 
-	var arr = [position.coords.latitude, position.coords.longitude];
-	// if((phone != 0) && (!email)){
-		arr = [position.coords.latitude, position.coords.longitude , phone , email];
-	// }
-	// else if(phone != 0){
-	// 	arr = [position.coords.latitude, position.coords.longitude , phone ];
-	// }
-	// else if(email){
-	// 	arr = [position.coords.latitude, position.coords.longitude , email];
-	// }
-
-
+	//console.log("Show position emergency reached!!!");
+	console.log("latitude :"+ position[0]+ " ;; Longitude :" + position[1]);
+	var latitude = position[0];
+	var longitude = position[1];
+	var	arr = [latitude, longitude, phone, email];
+	
 	requestToServer("hospitalFinderEmergency",arr,contexts);
 
 	var contexts2 = [{
@@ -622,7 +630,7 @@ function showPositionEmergency(position) {
 function showError() 
 {
     var contexts = [{
-					name: "hospitals-followup",
+					name: "location-denied",
 					parameters: {},
 					lifespan:1
 			}]; 
@@ -734,7 +742,7 @@ function storeChatbotFeedback(data){
 	requestToServer("storeChatbotRatingAndFeedback",arr,contexts);
 }
 
-function welcomeBackFollowup(data)
+function welcomeBackFollowup()
 {	
 		resetBrowserId();
 		var contexts = [{
@@ -744,6 +752,21 @@ function welcomeBackFollowup(data)
 		}]; 
 		requestToServer("beginChatbot","Begin Chatbot",contexts);
 }
+
+function welcomeFallBack()
+{
+			var contexts = 
+				[{
+					name: "followup",
+					parameters: {"reply":"Sorry, I am unable to proceed for some reason "},
+					lifespan:1
+				},{
+					name: "customWelcomeIntent",
+					parameters: {},
+					lifespan:1
+				}];
+			requestToServer("fromClient","Custom welcome intent",contexts);
+}
 		
 socket.on('setServerBrowserId', function (data) 
 {
@@ -751,6 +774,8 @@ socket.on('setServerBrowserId', function (data)
 		localStorage.setItem("sessionId", data);
 });
 
+
+var currIntent = null, prevIntent = null;
 socket.on('fromServer', function (data) 
 { 
 	if(data.hasOwnProperty('error'))
@@ -766,15 +791,13 @@ socket.on('fromServer', function (data)
 					"	</div>"+
 					"</li>");
 	}
-	/*else if(data.hasOwnProperty('home'))
-	{
-		var contexts = [{
-					name: "welcome",
-					parameters: {"reply":""},
-					lifespan:1
-				}];
-		requestToServer("fromClient","home","");
-	}*/
+	else if(data.server.result.metadata.intentName.localeCompare(currIntent)==0 && 
+		   currIntent.localeCompare(prevIntent)==0) 
+	{	
+		welcomeFallBack();
+		prevIntent = currIntent;
+		currIntent = data.server.result.metadata.intentName;
+	}
 	else
 	{
 		// recieveing a reply from server.
@@ -796,7 +819,7 @@ socket.on('fromServer', function (data)
 		else if(sourceVal.localeCompare('webhook')==0) processWebhook(data.server.result.fulfillment.data);	
 		else if(actionVal.localeCompare('Screener-End')==0) screenerScoreDisplay();	
 		else if(actionVal.localeCompare('FindEmail')==0) findEmail();		
-		else if(actionVal.localeCompare('WelcomeBackFollowup')==0) welcomeBackFollowup(data.server);
+		else if(actionVal.localeCompare('WelcomeBackFollowup')==0) welcomeBackFollowup();
 		else if(actionVal.localeCompare('EmailVerify')==0) emailDisplay(data.server.result.parameters.email);
 		else if(actionVal.localeCompare('OtpVerify')==0) otpDisplay(data.server.result.parameters.otp);				
 		else if(actionVal.localeCompare('HospitalFinder')==0) hospitalFinder();		
@@ -834,6 +857,8 @@ socket.on('fromServer', function (data)
 
 		socket.emit("logConvo", {convo : convo});
 		convo = "\n";
+		prevIntent = currIntent;
+		currIntent = data.server.result.metadata.intentName;
 	}
 });
 

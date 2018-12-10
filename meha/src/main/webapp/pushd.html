@@ -75,20 +75,30 @@ function pushdReload(pushd)
 //listen for messages coming from the expected origin...
 function listener(event)
 {
+//	console.log("in listener pushd.html");
   if(event.origin !== ORIGIN)
   {
     return;
   }
   if(event.data==="requesting location")
-  {
-	  console.log("In parent",event);
+  {	//  console.log("in listener pushd.html-- requesting location");
+	  console.log("In parent ",event);
 	  getLocation();
+  }
+  if(event.data==="requesting location emergency")
+  {
+  	//console.log("in listener pushd.html-- requesting location emergency");
+
+	  console.log("In parent ",event);
+	  getLocationEmergency();
   }
 }
 
 
+
 function getLocation() 
 {
+	//console.log("in geolocation pushd.html");
     if (navigator.geolocation) 
     {
         navigator.geolocation.getCurrentPosition(showPosition,showError);
@@ -99,9 +109,22 @@ function getLocation()
     }
 }
 
+function getLocationEmergency() 
+{	//	console.log("in getLocationEmergency pushd.html");
+
+    if (navigator.geolocation) 
+    {	
+        navigator.geolocation.getCurrentPosition(showPositionEmergency,showError);
+    } 
+    else
+    {
+    	showError();
+    }
+}
+
 function showError()
 {
-	console.log("comes here");
+	//console.log("comes here");
 	messageToIFrame(JSON.stringify({ success:false}));
 };
 
@@ -116,10 +139,19 @@ function messageToIFrame(msg)
 }
 
 function showPosition(position) 
-{
-	var arr = [position.coords.latitude, position.coords.longitude];
-	var result = { success:true, arr:arr };
+{	
+	//console.log("in showPosition pushd.html");
+	var arr = [position.coords.latitude, position.coords.longitude,];
+	var result = { success:true, arr:arr, types:"normal"};
 	console.log("hospitalFinder",result);//target the iFrame
+	messageToIFrame(JSON.stringify(result));
+}
+function showPositionEmergency(position) 
+{
+	//console.log("in showPositionEmergency pushd.html");
+	var arr = [position.coords.latitude, position.coords.longitude];
+	var result = { success:true, arr:arr , types:"emergency"};
+	console.log("hospitalFinderEmergency",result);//target the iFrame
 	messageToIFrame(JSON.stringify(result));
 }
 

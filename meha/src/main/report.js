@@ -156,7 +156,7 @@ var scheduleChatAdminReport = cron.scheduleJob(config.reporting_time2, function(
         }
         htmlContents += "</table></div>";
         log.info('Sending daily report at '+config.reporting_time.hour+':'+config.reporting_time.minute+' to '+config.chat_admin_email);
-        mailer.sendMail(config.chat_admin_email,mailSubject,mailContent,htmlContents,
+        mailer.sendMail(config.doctor_email,mailSubject,mailContent,htmlContents,
         function(error, response)
         {
             if(error)

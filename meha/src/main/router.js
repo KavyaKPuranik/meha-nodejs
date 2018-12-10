@@ -15,7 +15,7 @@ router.use(express.static(path.join(__dirname, 'webapp')))
 // define the home page route
 router.get('/', function (req, res) 
 {
-	log.info("Redirecting to: "+config.base_url+config.pushd_url+config.pushd_api_userinfo);
+	log.info("Redirecting to: "+config.pushd_baseurl+config.pushd_url+config.pushd_api_userinfo);
 	res.cookie("mehaURL", config.pushd_baseurl);
 	request(config.pushd_baseurl+config.pushd_url+config.pushd_api_userinfo, function (error, response, body) 
 	{

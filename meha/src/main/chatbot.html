@@ -13,23 +13,16 @@
 	
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
     <script src="/socket.io/socket.io.js"></script>
-	<script type="text/javascript">
-			function getLocation() {
-			    if (navigator.geolocation) {
-			        navigator.geolocation.getCurrentPosition(showPosition, showError);
-			    } 
-			}
-            function getLocationEmergency() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(showPositionEmergency, showError);
-                } 
-            }
-	</script>
     <script src="javascripts/convo.js"></script>
 	
   </head>
   
   <body class="chat-main">
+                <div style="background-color: #fcf8e3;text-align:center" class="col-sm-12 username pl-2">
+                    <span class="text-muted">
+						<small>	To restart the conversation, click on the HOME icon</small>
+					</span>
+                </div>
                 <div class="col-md-12 chat-header bg-primary text-white">
                     <div style="height:25px;padding-top:3px"  class="row">
                         <div class="col-sm-9 username pl-2">
