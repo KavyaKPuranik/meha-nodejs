@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-FOLDER=`echo $PWD`
+FOLDER='~/meha-nodejs-master'
 
 
 start() 
@@ -10,8 +10,8 @@ start()
   if [ "$stat" = "false" ]
   then
 	cd $FOLDER
-	npm install >> ./logs/service.log 2>&1 &
-	node meha/src/main/server.js >> ./logs/service.log 2>&1 &
+	sudo npm install >> $FOLDER/logs/service.log 2>&1 &
+	sudo node meha/src/main/server.js >> $FOLDER/logs/service.log 2>&1 &
 	RUNNING_PID=$!
 	echo "Meha is runnig on pid: $RUNNING_PID"
 	echo "$RUNNING_PID" > "./meha.pid"
@@ -23,18 +23,14 @@ start()
 
 status() 
 {
-  file="./meha.pid"
-  if [ ! -f $file ] 
+  stat=$(sudo ps ax | grep -v grep | grep 'node meha/src/main/server.js')
+  
+  if [ $? -ne 0 ]
   then
-    echo "false";
+    echo 'false'
   else
-    RUNNING_PID=`cat "./meha.pid"`
-    if [ -e /proc/${RUNNING_PID} -a /proc/${RUNNING_PID}/exe ]
-    then
-      echo "${RUNNING_PID}";
-    else
-      echo "false";
-    fi
+    pids=`sudo ps ax | grep -v grep | grep 'node meha/src/main/server.js' | cut -d' ' -f2`
+    echo $pids
   fi
 }
 
@@ -46,13 +42,14 @@ stop()
     echo "Meha is NOT running"
 
   else
-    kill -9 $stat
+    sudo kill -9 $stat
     sleep 2
-    if [ -e /proc/${stat} -a /proc/${stat}/exe ]
+    stat=$(status)
+    if [ "$stat" = "false" ]
     then
-      echo "Unable to stop the service. Meha is still runnig on pid: $stat"
-    else
       echo "Successfully stopped Meha"
+    else
+      echo "Unable to stop the service. Meha is still runnig on pid: $stat"
     fi
   fi
 }

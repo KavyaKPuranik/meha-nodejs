@@ -316,9 +316,7 @@ io.on('connection', (socket) =>
 		mailer.sendMail(config.emergency_reciever,"Emergency! A Life is under danger.",
 			"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
 			" The details of the person is sharing with you below<br><b> Phone No: "+data.query[0]+"<br>Email: "+data.query[1]+"<br></b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
-			"<br><b>Please take appropriate actions immediately.</b></div>"+
-			"<div><h3>The conversation was as follows: </h3></div>"+
-			"<div border=1><i>"+convo+"</i></div>",
+			"<br><b>Please take appropriate actions immediately.</b></div>",
 			function(error, response)
 			{
 				if(error)
@@ -327,7 +325,6 @@ io.on('connection', (socket) =>
 				}
 				else
 				{
-					// console.log("success");
 				}
 			});
 	});
@@ -363,45 +360,46 @@ io.on('connection', (socket) =>
 			email = "Not Available";
 			static_email = email;
 		}
-
+		var mailconvo = convo.replace(/(?:\r\n|\r|\n)/g, '<br>');
 		if(attachmentID2 != "" && attachmentID1 != ""){
 				mailer.sendMail2Attachment(config.emergency_reciever,"Emergency! A Life is under danger.",
 				"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
 				" The details of the person is sharing with you below<br><b> Phone No: "+phone+"<br>Email: "+email+"<br></b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
-				"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>",
+				"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+				"<div><h4>The conversation was as follows: </h3></div>"+
+				"<div><table border='1'><i>"+mailconvo+"</i></table><div>",
 				function(error, response)
 				{
 					if(error)
 					{
 						log.error(error);
-						 // apiGetRes(socket,"Emergency email error",data.options);
 					}
 					else
 					{
-						// db.updateQuery("user",["email","otp","otp_sent_at"],[data.query,otp,date],["browserid"],[data.options.sessionId],function(){});
 						apiGetRes(socket,"help",data.options);
 					}
 				},attachmentID1, attachmentID2);
+
+				
 		}
 		else if(attachmentID2 != ""){
 				mailer.sendMail1Attachment(config.emergency_reciever,"Emergency! A Life is under danger.",
 				"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
 				" The details of the person is sharing with you below<br><b> Phone No: "+phone+"<br>Email: "+email+"<br></b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
-				"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>",
+				"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+				"<div><h4>The conversation was as follows: </h3></div>"+
+				"<div><table border='1'><i>"+mailconvo+"</i></table><div>",				
 				function(error, response)
 				{
 					if(error)
 					{
 						log.error(error);
-						 // apiGetRes(socket,"Emergency email error",data.options);
 					}
 					else
 					{
-						// db.updateQuery("user",["email","otp","otp_sent_at"],[data.query,otp,date],["browserid"],[data.options.sessionId],function(){});
 						apiGetRes(socket,"help",data.options);
 					}
 				},attachmentID2);
-
 
 		}
 
@@ -409,20 +407,21 @@ io.on('connection', (socket) =>
 				mailer.sendMail1Attachment(config.emergency_reciever,"Emergency! A Life is under danger.",
 				"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
 				" The details of the person is sharing with you below<br><b> Phone No: "+phone+"<br>Email: "+email+"<br></b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
-				"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>",
+				"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+				"<div><h4>The conversation was as follows: </h3></div>"+
+				"<div><table border='1'><i>"+mailconvo+"</i></table><div>",
 				function(error, response)
 				{
 					if(error)
 					{
 						log.error(error);
-						 // apiGetRes(socket,"Emergency email error",data.options);
 					}
 					else
 					{
-						// db.updateQuery("user",["email","otp","otp_sent_at"],[data.query,otp,date],["browserid"],[data.options.sessionId],function(){});
 						apiGetRes(socket,"help",data.options);
 					}
 				},attachmentID1);
+
 
 		}
 
@@ -440,7 +439,6 @@ io.on('connection', (socket) =>
 
 		var attachmentID1 = "";
 		if (fs.existsSync('./logs/users/'+sessionId+'.log')) {
-		    // console.log("sessionid its present");
 		    attachmentID1 = './logs/users/'+sessionId+'.log';
 		}
 
@@ -451,25 +449,25 @@ io.on('connection', (socket) =>
 		}
 		else {
 				if (fs.existsSync('./logs/users/'+mehaEmail+'.log')) {
-			    	// console.log("mailID its present");
 			    	attachmentID2 = './logs/users/'+mehaEmail+'.log';
 				}
 		}
+		var mailconvo = convo.replace(/(?:\r\n|\r|\n)/g, '<br>');
+
 		if(attachmentID2 != "" && attachmentID1 != ""){
 					mailer.sendMail2Attachment(config.emergency_reciever,"Emergency! A Life is under danger.",
 					"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
 					" The details of the person is sharing with you below<br><b> "+data.query[0]+": "+data.query[1]+".<br><b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
-					"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>",
+					"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+					"<div><table border='1'><i>"+mailconvo+"</i></table><div>",
 					function(error, response)
 					{
 						if(error)
 						{
 							log.error(error);
-							 // apiGetRes(socket,"Emergency email error",data.options);
 						}
 						else
 						{
-							// db.updateQuery("user",["email","otp","otp_sent_at"],[data.query,otp,date],["browserid"],[data.options.sessionId],function(){});
 							apiGetRes(socket,"help",data.options);
 						}
 					},attachmentID1,attachmentID2);
@@ -478,17 +476,17 @@ io.on('connection', (socket) =>
 					mailer.sendMail1Attachment(config.emergency_reciever,"Emergency! A Life is under danger.",
 					"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
 					" The details of the person is sharing with you below<br><b> "+data.query[0]+": "+data.query[1]+".<br><b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
-					"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>",
+					"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+					"<div><h4>The conversation was as follows: </h3></div>"+
+					"<div><table border='1'><i>"+mailconvo+"</i></table><div>",
 					function(error, response)
 					{
 						if(error)
 						{
 							log.error(error);
-							 // apiGetRes(socket,"Emergency email error",data.options);
 						}
 						else
 						{
-							// db.updateQuery("user",["email","otp","otp_sent_at"],[data.query,otp,date],["browserid"],[data.options.sessionId],function(){});
 							apiGetRes(socket,"help",data.options);
 						}
 					},attachmentID2);
@@ -501,17 +499,18 @@ io.on('connection', (socket) =>
 					mailer.sendMail1Attachment(config.emergency_reciever,"Emergency! A Life is under danger.",
 					"A person is showing some suicidal / murder tendencies.The details of the person is shring with you below", "<div>Based on the conversation just now the person seems to show some suicidal / murder tendencies."+
 					" The details of the person is sharing with you below<br><b> "+data.query[0]+": "+data.query[1]+".<br><b>This message is sent at "+date +". We have adviced the individual to keep calm and relax."+
-					"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>",
+					"<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+					"<div><h4>The conversation was as follows: </h3></div>"+
+					"<div><table border='1'><i>"+mailconvo+"</i></table><div>",
+
 					function(error, response)
 					{
 						if(error)
 						{
 							log.error(error);
-							 // apiGetRes(socket,"Emergency email error",data.options);
 						}
 						else
 						{
-							// db.updateQuery("user",["email","otp","otp_sent_at"],[data.query,otp,date],["browserid"],[data.options.sessionId],function(){});
 							apiGetRes(socket,"help",data.options);
 						}
 					},attachmentID1);
@@ -573,6 +572,10 @@ io.on('connection', (socket) =>
 			    	attachmentID2 = './logs/users/'+mehaEmail+'.log';
 				}
 		}
+
+		var mailconvo = convo.replace(/(?:\r\n|\r|\n)/g, '<br>');
+
+
 		if(attachmentID2 != "" && attachmentID1 != ""){
 		
 			mailer.sendMail2Attachment(config.emergency_reciever,"Emergency! A Life is under danger.",
@@ -580,7 +583,9 @@ io.on('connection', (socket) =>
 				".<br>"+
 				"Phone : "+phone +"<br> Email : "+email +"</b> <br>We have suggested the individual to consult a doctor in the nearby hospital <b>"+hos+"</b>, pincode "+pin+".<br><b>"+
 				"This message is sent at "+date +
-				".<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>",
+				".<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+				"<div><h4>The conversation was as follows: </h3></div>"+
+				"<div><table border='1'><i>"+mailconvo+"</i></table><div>",
 				function(error, response)
 				{
 					if(error)
@@ -601,7 +606,10 @@ io.on('connection', (socket) =>
 				".<br>"+
 				"Phone : "+phone +"<br> Email : "+email +"</b> <br>We have suggested the individual to consult a doctor in the nearby hospital <b>"+hos+"</b>, pincode "+pin+".<br><b>"+
 				"This message is sent at "+date +
-				".<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>",
+				".<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+				"<div><h4>The conversation was as follows: </h3></div>"+
+				"<div><table border='1'><i>"+mailconvo+"</i></table><div>",
+
 				function(error, response)
 				{
 					if(error)
@@ -623,7 +631,10 @@ io.on('connection', (socket) =>
 				".<br>"+
 				"Phone : "+phone +"<br> Email : "+email +"</b> <br>We have suggested the individual to consult a doctor in the nearby hospital <b>"+hos+"</b>, pincode "+pin+".<br><b>"+
 				"This message is sent at "+date +
-				".<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>",
+				".<br><b>Please take appropriate actions immediately.</b><br>  Conversation log of the user is attached with this mail, which will be helpful for your analysis.</div>"+
+				"<div><h4>The conversation was as follows: </h3></div>"+
+				"<div><table border='1'><i>"+mailconvo+"</i></table><div>",
+
 				function(error, response)
 				{
 					if(error)

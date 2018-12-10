@@ -1,71 +1,150 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
+
 <html>
+<head>
+<title>PushD with chatbot</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
+<link rel="stylesheet" type="text/css" href="css/chatbox.css" />
+<script>
+var currUserId = null;
+var config = null;
+var chatbot_baseurl = null;
+var pushd_baseurl = null;
+var ORIGIN = null;
+var chatbot_url = null;
+var pushd_url = null;
+readTextFile("./conf/config.json", function(text)
+{
+	config = JSON.parse(text);
+	chatbot_baseurl = config.chatbot_baseurl;
+	pushd_baseurl = config.pushd_baseurl;
+	chatbot_url = config.chatbot_url;
+	pushd_url = config.pushd_url;
+	ORIGIN = chatbot_baseurl;
+});
+function readTextFile(file, callback) 
+{
+    var rawFile = new XMLHttpRequest();
+    rawFile.overrideMimeType("application/json");
+    rawFile.open("GET", file, true);
+    rawFile.onreadystatechange = function() 
+    {
+        if (rawFile.readyState === 4 && rawFile.status == "200") 
+        {
+            callback(rawFile.responseText);
+        }
+    }
+    rawFile.send(null);
+}
 
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
-    <link rel="stylesheet" type="text/css" href="css/chatbox.css" />
-	<script>
-		var currUserId = null;
-		var config = null;
-		function readTextFile(file, callback) 
-		{
-		    var rawFile = new XMLHttpRequest();
-		    rawFile.overrideMimeType("application/json");
-		    rawFile.open("GET", file, true);
-		    rawFile.onreadystatechange = function() 
-		    {
-		        if (rawFile.readyState === 4 && rawFile.status == "200") 
-		        {
-		            callback(rawFile.responseText);
-		        }
-		    }
-		    rawFile.send(null);
-		}
+$(document).ready(function() 
+{
+	$('#pushd-iframe').attr('src',pushd_baseurl+pushd_url);
+	$('#chatbot-iframe').attr('src',chatbot_baseurl+chatbot_url+"/?userid=-9999");
+	$('#chatbot-maximize').hide();
+	  
+	$('#chatbot-minimize').click(function() 
+	{
+	  $('#chatbot-iframe').toggle();
+	  $('#chatbot-minimize').hide();
+	  $('#chatbot-maximize').show();
+	});
+	$('#chatbot-maximize').click(function() 
+	{
+	  $('#chatbot-iframe').toggle();
+	  $('#chatbot-minimize').show();
+	  $('#chatbot-maximize').hide();
+	});
+});
 
-		$(document).ready(function() 
+function pushdReload(pushd)
+{
+	var nextUserId = pushd.contentWindow.userId;
+		console.log("Curr user id : ",nextUserId);
+		if(currUserId != nextUserId)
 		{
-			readTextFile("./conf/config.json", function(text)
-			{
-			    config = JSON.parse(text);
-				$('#pushd-iframe').attr('src',config.pushd_url);
-			});
-			$('#chatbot-maximize').hide();
-			  
-			$('#chatbot-minimize').click(function() 
-			{
-			  $('#chatbot-iframe').toggle();
-			  $('#chatbot-minimize').hide();
-			  $('#chatbot-maximize').show();
-			});
-			$('#chatbot-maximize').click(function() 
-			{
-			  $('#chatbot-iframe').toggle();
-			  $('#chatbot-minimize').show();
-			  $('#chatbot-maximize').hide();
-			});
-		});
-		
-		function pushdReload(pushd)
-		{
-			var nextUserId = pushd.contentWindow.userId;
-	  		console.log("Curr user id : ",nextUserId);
-	  		if(currUserId != nextUserId)
-	  		{
-	  			currUserId = nextUserId; 
-	  			$('#chatbot-iframe').attr('src',config.chatbot_url + '?userid='+currUserId);
-	  		}
-	  		else if(!currUserId && !nextUserId){
-	  			$('#chatbot-iframe').attr('src',config.chatbot_url + '?userid=null');
-	  		}
+			currUserId = nextUserId; 
+			$('#chatbot-iframe').attr('src',chatbot_baseurl+chatbot_url + '?userid='+currUserId);
 		}
-		
-	</script>
-<iframe id="pushd-iframe" onload="pushdReload(this)"
-style="position:fixed; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:0;" onLoad="alertSrc(this);">
-    Your browser doesn't support iframes
-</iframe>
-<iframe id="chatbot-iframe"  class="chat-main">
-    Your browser doesn't support iframes
-</iframe>
-<button id='chatbot-minimize' class="hide-chat-box"></button>
-<img id='chatbot-maximize' class="chat-icon" src="images/Chatbox.png" alt="start chat">
+		else if(!currUserId && !nextUserId)
+		{
+			$('#chatbot-iframe').attr('src',chatbot_baseurl+chatbot_url + '?userid=-9999');
+		}
+}
+
+//listen for messages coming from the expected origin...
+function listener(event)
+{
+  if(event.origin !== ORIGIN)
+  {
+    return;
+  }
+  if(event.data==="requesting location")
+  {
+	  console.log("In parent",event);
+	  getLocation();
+  }
+}
+
+
+function getLocation() 
+{
+    if (navigator.geolocation) 
+    {
+        navigator.geolocation.getCurrentPosition(showPosition,showError);
+    } 
+    else
+    {
+    	showError();
+    }
+}
+
+function showError()
+{
+	console.log("comes here");
+	messageToIFrame(JSON.stringify({ success:false}));
+};
+
+function messageToIFrame(msg)
+{
+	var win = document.getElementById("chatbot-iframe").contentWindow;
+	  //hey! what are we sending?
+
+	  //transmit our message to the iFramed page...
+	  //use JSON.stringify() to send text...
+	  win.postMessage(msg, ORIGIN);
+}
+
+function showPosition(position) 
+{
+	var arr = [position.coords.latitude, position.coords.longitude];
+	var result = { success:true, arr:arr };
+	console.log("hospitalFinder",result);//target the iFrame
+	messageToIFrame(JSON.stringify(result));
+}
+
+//attach a listener for when postMessage calls come in...
+if (window.addEventListener){
+  addEventListener("message", listener, false);
+}else{
+  attachEvent("onmessage", listener);
+}
+
+
+</script>
+
+</head>
+<body>
+
+    
+	<iframe id="pushd-iframe" onload="pushdReload(this)"
+	style="position:fixed; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:0;" onLoad="alertSrc(this);">
+	    Your browser doesn't support iframes
+	</iframe>
+	<iframe id="chatbot-iframe"  class="chat-main">
+	    Your browser doesn't support iframes
+	</iframe>
+	<button id='chatbot-minimize' class="hide-chat-box"></button>
+	<img id='chatbot-maximize' class="chat-icon" src="images/Chatbox.png" alt="start chat">
+</body>
 </html>

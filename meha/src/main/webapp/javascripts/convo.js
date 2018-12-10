@@ -27,6 +27,8 @@ var myCookies = getCookies();
 var mehaEmail = myCookies.mehaEmail;
 var mehaName = myCookies.mehaName;
 var mehaUser = myCookies.mehaUser;
+//this origin is the site that is iFraming in the content...
+var ORIGIN = myCookies.mehaURL;
 var email = mehaEmail.localeCompare("no-email")? mehaEmail : null;
 var name = mehaName.localeCompare("no-name")? mehaName : null;
 mehaUser = mehaUser.localeCompare("no-user")? JSON.parse(mehaUser) : null;
@@ -538,18 +540,49 @@ function otpDisplay(otp)
 	requestToServer("matchOTP",otp,contexts);
 }
 
-function hospitalFinder()
+
+//these are functions that are called from the parent page into this one...
+function listener(event)
 {
-	 getLocation();
+	if(event.origin !== ORIGIN && 
+			event.origin !== "http://localhost:3000" && 
+			event.origin !== "http://localhost"&& 
+			event.origin !== "http://localhost:8080")
+	{
+		return;
+	}
+	else
+	{
+		console.log("In client",event);
+		var response   = JSON.parse(event.data);
+		if(response.success)
+			showPosition(response.arr);
+		else 
+			showError();
+	}
 }
 
-function showPosition(position) {
+//attach a listener for when postMessage calls come in...
+if (window.addEventListener)
+{
+	addEventListener("message", listener, false);
+}
+else
+{
+	attachEvent("onmessage", listener);
+}
+
+function hospitalFinder()
+{
+	window.parent.postMessage('requesting location', (ORIGIN == 'file:' ? '*' : ORIGIN));
+}
+
+function showPosition(arr) {
 	var contexts = [{
 					name: "hospital-data",
 					parameters: {},
 					lifespan:1
 			}]; 
-	var arr = [position.coords.latitude, position.coords.longitude];
 	requestToServer("hospitalFinder",arr,contexts);
 }
 function hospitalFinderEmergency()
@@ -586,29 +619,15 @@ function showPositionEmergency(position) {
 	requestToServer("EmergencySendMailLocation", arr, contexts2);
 
 }
-function showError(error) {
-    switch(error.code) {
-        case error.PERMISSION_DENIED:{
-        	var contexts = [{
+function showError() 
+{
+    var contexts = [{
 					name: "hospitals-followup",
 					parameters: {},
 					lifespan:1
 			}]; 
-        	requestToServer("LocationDenied","",contexts);
-            console.log("User denied the request for Geolocation.");
-            break;
-        }
-        	
-        case error.POSITION_UNAVAILABLE:
-            console.log("Location information is unavailable.");
-            break;
-        case error.TIMEOUT:
-            console.log("The request to get user location timed out.");
-            break;
-        case error.UNKNOWN_ERROR:
-            console.log("An unknown error occurred.");
-            break;
-    }
+    requestToServer("LocationDenied","",contexts);
+    console.log("Unable to fetch Geolocation.");
 }
 
 function hospitalNoButEmergency(data)
