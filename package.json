@@ -7,7 +7,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node meha/src/main/heroku.js"
+    "start": "node meha/src/main/server.js"
   },
   "keywords": [],
   "author": "",
